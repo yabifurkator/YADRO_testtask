@@ -7,33 +7,36 @@ import (
 )
 
 func validateKeys(table *Table) (bool, error) {
-	colKeysValidator, _ := regexp.Compile("[0-9]")	
+
+	colRegexpr := "^" + ColumnNameRegexpr + "$"
+	colKeysValidator := regexp.MustCompile(colRegexpr)
 	for index, key := range table.colKeys {
-		if len(key) == 0{
+		if key == EmptyString {
 			return false, fmt.Errorf(
 				"column name can't be empty, column index: %d",
-				index,
+				index + 1,
 			)
 		}
-		if colKeysValidator.MatchString(key) {
+		if !colKeysValidator.MatchString(key) {
 			return false, fmt.Errorf(
-				"column name can't contain any numbers, column index: %d",
-				index,
+				"column name must contain only EN letters (lower of upper case), column index: %d",
+				index + 1,
 			)
 		}
 	}
 
-	rowKeysValidator, _ := regexp.Compile("[^0-9]")
+	rowRegexpr := "^" + RowNumberRegexpr + "$"
+	rowKeysValidator := regexp.MustCompile(rowRegexpr)
 	for index, key := range table.rowKeys {
-		if len(key) == 0 {
+		if key == EmptyString {
 			return false, fmt.Errorf(
 				"row number can't be empty, row index: %d",
 				index,
 			)
 		}
-		if rowKeysValidator.MatchString(key) {
+		if !rowKeysValidator.MatchString(key) {
 			return false, fmt.Errorf(
-				"row number can't contain anything but digits, row index: %d",
+				"row number must contain only digits, row index: %d",
 				index,
 			)
 		}
@@ -50,24 +53,29 @@ func validateCells(table *Table) (bool, error) {
 	}
 
 	isExpression := func (str *string) bool {
-		return (*str)[0] == '='
+		operandRegexpr := "(" + ColumnNameRegexpr + RowNumberRegexpr + ")"
+		exprRegexpr := "^=" + operandRegexpr + "[\\+\\-\\*\\/]" + operandRegexpr + "$"
+		fmt.Println(exprRegexpr)
+		expressionValidator := regexp.MustCompile(exprRegexpr);
+		
+		return expressionValidator.MatchString(*str)
 	}
 
 	for _, colKey := range table.colKeys {
 		for _, rowKey := range table.rowKeys {
 			cell := table.columns[colKey][rowKey];
-			if len(cell) == 0 {
+			if cell == EmptyString {
 				return false, fmt.Errorf(
-					("cell can't be empty, cell position: " +
-					"column name -> %s, row number -> %s"),
+					("cell can't be empty" +
+					"\ncolumn name: %s, row number: %s"),
 					colKey,
 					rowKey,
 				)
 			}
 			if (!isInt(&cell) && !isExpression(&cell)) {
 				return false, fmt.Errorf(
-					("cell must be an integer or an expression, " +
-					"cell position: column name -> %s, row numer -> %s"),
+					("cell must be an integer or an expression " +
+					"with correct syntax\ncolumn name: %s, row numer: %s"),
 					colKey,
 					rowKey,
 				);

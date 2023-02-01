@@ -22,6 +22,9 @@ func main() {
     }
     fmt.Println(table)
 
-    isTableValid, err := mycsv.ValidateTable(table)
-    fmt.Println(isTableValid, err)
+    _, err = mycsv.ValidateTable(table)
+    if err != nil {
+        fmt.Println("Table is invalid:", err)
+        return
+    }
 }
