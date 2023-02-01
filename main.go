@@ -22,9 +22,10 @@ func main() {
     }
     fmt.Println(table)
 
-    _, err = mycsv.ValidateTable(table)
+    processedTable, err := mycsv.ProcessTable(*table)
     if err != nil {
         fmt.Println("Table is invalid:", err)
         return
     }
+    fmt.Println(*processedTable)
 }
