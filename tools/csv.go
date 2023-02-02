@@ -20,6 +20,21 @@ func newTable() *Table {
 	return table
 }
 
+func (table *Table) ToCsvView() string {
+	var cvsView string
+	for _, colName := range table.colKeys {
+		cvsView += "," + colName
+	}
+	for _, rowNumber := range table.rowKeys {
+		row := "\n" + rowNumber
+		for _, colName := range table.colKeys {
+			row += "," + table.columns[colName][rowNumber]
+		}
+		cvsView += row
+	}
+	return cvsView
+}
+
 func GetTableFromCsvFile(file *os.File) (*Table, error) {
 	csvReader := csv.NewReader(file);
 	columnNames, err := csvReader.Read();

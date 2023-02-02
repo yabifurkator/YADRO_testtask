@@ -20,12 +20,14 @@ func main() {
         fmt.Println("Error getting table from file:", err)
         return
     }
-    fmt.Println(table)
 
-    processedTable, err := mycsv.ProcessTable(*table)
+    fmt.Printf("input:\n%s\n", table.ToCsvView())
+
+    err = mycsv.ProcessTable(*table)
     if err != nil {
         fmt.Println("Table is invalid:", err)
         return
     }
-    fmt.Println(*processedTable)
+    
+    fmt.Printf("output:\n%s\n", table.ToCsvView())
 }

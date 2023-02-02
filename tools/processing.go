@@ -74,7 +74,6 @@ func processExpression(expression *string, table *Table) (*string, error) {
 		cell := table.columns[colKey][rowKey]
 		value, err = strconv.Atoi(cell)
 		if err != nil {
-			fmt.Println(err)
 			return nil, fmt.Errorf(
 				"invalid operand \"" + *operand +
 				"\" in expression \"" + *expression + "\"\n" +
@@ -98,21 +97,27 @@ func processExpression(expression *string, table *Table) (*string, error) {
 	var result int
 
 	switch operationStr {
-	case "+": result = *operand1 + *operand2
-	case "-": result = *operand1 - *operand2
-	case "*": result = *operand1 * *operand2
-	case "/": result = *operand1 / *operand2
+		case "+": result = *operand1 + *operand2
+		case "-": result = *operand1 - *operand2
+		case "*": result = *operand1 * *operand2
+		case "/":
+			if *operand2 == 0 {
+				return nil, fmt.Errorf(
+					"invalid second operand value in expression \"" +
+					*expression + "\"\nzero division",
+				)
+			}
+			result = *operand1 / *operand2
 	}
 
-	// resultStr := strconv.FormatFloat(result, 'f', 2, 64)	
 	resultStr := strconv.Itoa(result)
 	return &resultStr, nil
 }
 
-func ProcessTable(table Table) (*Table, error) {
+func ProcessTable(table Table) (error) {
 	_, err := validateKeys(&table)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	isExpression := func (str *string) bool {
@@ -126,7 +131,7 @@ func ProcessTable(table Table) (*Table, error) {
 		for _, rowKey := range table.rowKeys {
 			cell := table.columns[colKey][rowKey];
 			if cell == EmptyString {
-				return nil, fmt.Errorf(
+				return fmt.Errorf(
 					("cell can't be empty" +
 					"\ncolumn name: %s, row number: %s"),
 					colKey,
@@ -135,7 +140,7 @@ func ProcessTable(table Table) (*Table, error) {
 			}
 			if !IsInt(&cell) {
 				if !isExpression(&cell) {
-					return nil, fmt.Errorf(
+					return fmt.Errorf(
 						("cell must be an integer or an expression " +
 						"with correct syntax\ncolumn name: %s, row numer: %s"),
 						colKey,
@@ -144,11 +149,11 @@ func ProcessTable(table Table) (*Table, error) {
 				}
 				newCell, err := processExpression(&cell, &table)
 				if err != nil {
-					return nil, err
+					return err
 				}
 				table.columns[colKey][rowKey] = *newCell
 			}
 		}
 	}
-	return &table, nil;
+	return nil
 }
