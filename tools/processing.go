@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 func validateKeys(table *Table) (bool, error) {
@@ -45,8 +46,22 @@ func validateKeys(table *Table) (bool, error) {
 }
 
 func processExpression(expression *string, table *Table) (*string, error) {
+	expression_to_drop := *expression
+
 	operandExpr := regexp.MustCompile(OperandRegexpr)
-	operands := operandExpr.FindAllString(*expression, 2)
+	
+	operand1Str := operandExpr.FindString(expression_to_drop)
+	expression_to_drop = strings.Replace(
+		expression_to_drop,
+		"=" + operand1Str,
+		"", 
+		1,
+	)
+
+	operationStr := string(expression_to_drop[0])
+	expression_to_drop = expression_to_drop[1:]
+	
+	operand2Str := operandExpr.FindString(expression_to_drop)
 
 	operandToInt := func (operand *string) (*int, error) {
 		value, err := strconv.Atoi(*operand)
@@ -60,13 +75,13 @@ func processExpression(expression *string, table *Table) (*string, error) {
 		var ok bool
 		_, ok = table.columns[colKey]; if !ok {
 			return nil, fmt.Errorf(
-				"invalid expression \"" + *expression + "\"" +
-				"column \"" + colKey + "\"doesn't exist",
+				"invalid expression \"" + *expression + "\"\n" +
+				"column \"" + colKey + "\" doesn't exist",
 			)
 		}
 		_, ok = table.columns[colKey][rowKey]; if !ok {
 			return nil, fmt.Errorf(	
-				"invalid expression \"" + *expression + "\"" +
+				"invalid expression \"" + *expression + "\"\n" +
 				"row \"" + rowKey + "\" doesn't exist",
 			)
 		}
@@ -84,15 +99,14 @@ func processExpression(expression *string, table *Table) (*string, error) {
 		return &value, nil
 	}
 
-	operand1, err := operandToInt(&operands[0])
+	operand1, err := operandToInt(&operand1Str)
 	if err != nil {
 		return nil, err
 	}
-	operand2, err := operandToInt(&operands[1])
+	operand2, err := operandToInt(&operand2Str)
 	if err != nil {
 		return nil, err
 	}
-	operationStr := regexp.MustCompile(OperationRegexpr).FindString(*expression)
 
 	var result int
 

@@ -7,7 +7,12 @@ import (
 )
 
 func main() {
-    infilepath := "input.txt"
+    if len(os.Args) != 2 {
+        fmt.Println("wrong command-line args")
+        return
+    }
+
+    infilepath := os.Args[1]
     file, err := os.Open(infilepath)
     if err != nil {
         fmt.Println("Error opening input file:", err)
@@ -21,13 +26,11 @@ func main() {
         return
     }
 
-    fmt.Printf("input:\n%s\n", table.ToCsvView())
-
     err = mycsv.ProcessTable(*table)
     if err != nil {
         fmt.Println("Table is invalid:", err)
         return
     }
     
-    fmt.Printf("output:\n%s\n", table.ToCsvView())
+    fmt.Println(table.ToCsvView())
 }
